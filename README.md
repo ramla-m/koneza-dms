@@ -2,20 +2,26 @@
 
 ## Summary
 
-Built the full authentication system for Koneza DMS including:
-- Custom Django User model (email-based login, ADMIN/STAFF roles)
-- JWT authentication with 15-minute access tokens and 7-day refresh tokens
-- Three API endpoints: `/api/auth/login`, `/api/auth/refresh`, `/api/auth/me`
-- React/TypeScript frontend with Ant Design, Redux Toolkit, and protected routing
-- Full Docker setup: PostgreSQL + Django + Vite in three containers
+Built the full authentication system for Koneza DMS.
 
-**Decisions not in the spec:**
-- Added a User Management UI (ADMIN-only) so managers can create and manage staff accounts through the browser without needing terminal access.
-- Added `management_urls.py` to keep user CRUD routes separate from auth routes.
+**Backend:**
+- Custom User model with email login, ADMIN/STAFF roles, tenant_id
+- JWT endpoints: `/api/auth/login`, `/api/auth/refresh`, `/api/auth/me`
+- Token settings: 15min access, 7 day refresh, Bearer header
+- 9 automated tests, all passing
+
+**Frontend:**
+- Vite + React + TypeScript + Ant Design
+- Redux auth slice — token never stored in localStorage
+- Protected `/dashboard` route, public `/login` route
+- Login form with loading state, error alert, validation
+
+**Extra :**
+- Admin User Management UI — create, edit, activate/deactivate and delete users directly from the browser. No terminal needed after setup.
 
 ---
 
-## How to run (from a fresh clone)
+## How to run
 
 **Requirements:** Docker Desktop installed and running. Nothing else needed.
 
@@ -31,13 +37,13 @@ cp .env.example .env
 docker compose up --build
 ```
 
-Wait for both of these lines to appear:
+Wait until you see both:
 ```
 backend-1  | Starting development server at http://0.0.0.0:8000/
 frontend-1 | VITE ready in ...ms
 ```
 
-**4. Create the first admin user** (one-time setup, in a second terminal):
+**4. Create the first admin user** (one-time, in a second terminal):
 ```bash
 docker compose exec backend python manage.py createsuperuser
 ```
@@ -48,41 +54,35 @@ docker compose exec backend python manage.py createsuperuser
 
 ## How to test
 
-### Run the automated test suite
-
+### Automated test suite
 ```bash
 docker compose exec backend python manage.py test users
 ```
 
 ### Postman
-
 Import `koneza-dms-postman-collection.json` from the repo root into Postman.
-
-1. Run **Login - valid credentials** first — the collection auto-saves your tokens.
+1. Run **Login - valid credentials** first — tokens are auto-saved to collection variables.
 2. Run remaining requests in order.
-3. All requests include automated test assertions.
+3. All requests include automated assertions.
 
 ---
 
 ## Test results
 
-<!-- 
-  Run: docker compose exec backend python manage.py test users
-  Then paste the output here before submitting the PR.
-
-  Expected output:
-  .........
-  Ran 9 tests in 0.XXXs
-  OK
--->
-
 ```
-PASTE OUTPUT HERE
+Found 9 test(s).
+Creating test database for alias 'default'...
+System check identified no issues (0 silenced).
+.........
+----------------------------------------------------------------------
+Ran 9 tests in 9.287s
+OK
+Destroying test database for alias 'default'...
 ```
 
 ---
 
 ## Known issues
 
-- Access token is not automatically refreshed when it expires (15 min). The user will need to log in again. Token refresh interceptor is planned for Week 2.
+- Access token is not auto-refreshed on expiry (15 min) — user must re-login. Planned for Week 2.
 - No email notification when an admin creates a staff account. Password must be shared manually.
